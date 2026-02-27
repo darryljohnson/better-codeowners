@@ -1,0 +1,14 @@
+name: 'Better Code Owners'
+description: 'Gerrit-style code owners for GitHub PRs'
+author: 'Darryl Johnson'
+inputs:
+  github-token:
+    description: 'GitHub Token'
+    required: true
+    default: ${{ github.token }}
+runs:
+  using: 'node20'
+  main: 'dist/index.js'
+branding:
+  icon: 'shield'
+  color: 'blue'
