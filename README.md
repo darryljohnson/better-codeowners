@@ -2,6 +2,15 @@
 
 A GitHub Action that implements Gerrit-style decentralized code ownership.
 
+## Why Better Code Owners?
+
+GitHub's native `CODEOWNERS` can be rigid and difficult to manage in large repositories. **Better Code Owners** provides a more flexible, developer-friendly alternative:
+
+-   **Decentralized & Scalable**: `OWNERS` files live near the code they protect. Teams have full autonomy over their own directories without needing to touch a central root file.
+-   **No "Double Approval" for Owners**: If you own the files you are changing, you shouldn't need another owner to approve your work. This plugin recognizes authors as owners, reducing unnecessary friction.
+-   **Hierarchical & Intuitive**: Ownership is inherited from parent directories, making it easy to define global owners at the root while allowing specialized teams to manage sub-folders.
+-   **Prevents Review Bottlenecks**: Only one approval from any valid owner is required per file, keeping PRs moving quickly.
+
 ## How it Works
 
 1.  Place `OWNERS` files anywhere in your repository's directory structure.
