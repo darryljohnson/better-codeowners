@@ -5,7 +5,10 @@ import path from 'path';
 
 async function run() {
     try {
-        const token = core.getInput('github-token');
+        const token = core.getInput('github-token') || process.env.GITHUB_TOKEN;
+        if (!token) {
+            throw new Error('GitHub token not found. Please provide it via input or GITHUB_TOKEN env var.');
+        }
         const octokit = github.getOctokit(token);
         const context = github.context;
 
