@@ -31,7 +31,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Better Code Owners
-        uses: ./ # Path to the action
+        uses: darryljohnson/better-codeowners@v1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
