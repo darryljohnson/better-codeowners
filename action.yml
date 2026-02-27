@@ -3,8 +3,8 @@ description: 'Gerrit-style code owners for GitHub PRs'
 author: 'Darryl Johnson'
 inputs:
   github-token:
-    description: 'GitHub Token'
-    required: true
+    description: 'GitHub Token (defaults to GITHUB_TOKEN env var)'
+    required: false
     default: ${{ github.token }}
 runs:
   using: 'node20'
