@@ -8,8 +8,8 @@
     "test": "node tests/test-resolver.js"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "Darryl Johnson",
+  "license": "MIT",
   "type": "module",
   "dependencies": {
     "@actions/core": "^3.0.0",
