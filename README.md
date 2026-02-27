@@ -25,7 +25,6 @@ on:
   pull_request_review:
     types: [submitted, dismissed]
 
-jobs:
   validate-owners:
     runs-on: ubuntu-latest
     steps:
