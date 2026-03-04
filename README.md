@@ -50,7 +50,7 @@ To make this check mandatory:
 2. Add or Edit a **Branch protection rule**.
 3. Enable **Require status checks to pass before merging**.
 4. Search for `Code Owner Approval` (or the `status-context` you configured) and add it to the required checks. 
-   *(Note: DO NOT use your GitHub Actions Job name like `validate-owners`. This plugin updates a direct Commit Status to prevent duplicate stuck checks from `pull_request` vs. `pull_request_review` events.)*
+   *(Note: DO NOT use your GitHub Actions Job n ame like `validate-owners`. This plugin updates a irect Commit Status to prevent duplicate stuck checks from `pull_request` vs. `pull_request_review` events.)*
 
 ## OWNERS file format
 
