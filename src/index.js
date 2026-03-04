@@ -53,10 +53,18 @@ async function run() {
                 .map(([user, info]) => user)
         );
 
+        const requestedChangesReviewers = new Set(
+            Array.from(latestReviews.entries())
+                .filter(([user, info]) => info.state === 'CHANGES_REQUESTED')
+                .map(([user, info]) => user)
+        );
+
         core.info(`PR Author: ${prAuthor}`);
         core.info(`Approved Reviewers: ${Array.from(approvedReviewers).join(', ')}`);
+        core.info(`Requested Changes Reviewers: ${Array.from(requestedChangesReviewers).join(', ')}`);
 
         const unapprovedFiles = [];
+        const requestedChangesFiles = [];
         const repoRoot = process.cwd();
 
         for (const file of files) {
@@ -67,7 +75,16 @@ async function run() {
                 owner === prAuthor || approvedReviewers.has(owner)
             );
 
-            if (!isApproved) {
+            const hasRequestedChanges = !isApproved && owners.some(owner =>
+                requestedChangesReviewers.has(owner)
+            );
+
+            if (hasRequestedChanges) {
+                requestedChangesFiles.push({
+                    filename: file.filename,
+                    owners
+                });
+            } else if (!isApproved) {
                 unapprovedFiles.push({
                     filename: file.filename,
                     owners
@@ -78,8 +95,16 @@ async function run() {
         let state = 'success';
         let description = 'All files approved by code owners.';
 
-        if (unapprovedFiles.length > 0) {
+        if (requestedChangesFiles.length > 0) {
             state = 'failure';
+            description = 'Changes requested by code owners.';
+            let message = 'The following files have changes requested by a code owner:\n';
+            requestedChangesFiles.forEach(f => {
+                message += `- ${f.filename} (Owners: ${f.owners.join(', ') || 'None'})\n`;
+            });
+            core.info(message);
+        } else if (unapprovedFiles.length > 0) {
+            state = 'pending';
             description = 'Pending owner approval for some files.';
             let message = 'The following files require approval from at least one code owner:\n';
             unapprovedFiles.forEach(f => {
