@@ -45,6 +45,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Better Code Owners
         uses: darryljohnson/better-codeowners@v1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
 ### 2. Configure Branch Protection
