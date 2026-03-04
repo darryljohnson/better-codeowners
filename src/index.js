@@ -17,7 +17,9 @@ async function run() {
             return;
         }
 
+        const statusContext = core.getInput('status-context') || 'Code Owner Approval';
         const prAuthor = context.payload.pull_request.user.login;
+        const sha = context.payload.pull_request.head.sha;
         const { owner, repo, number: pull_number } = context.issue;
 
         // 1. Get changed files
@@ -73,15 +75,30 @@ async function run() {
             }
         }
 
+        let state = 'success';
+        let description = 'All files approved by code owners.';
+
         if (unapprovedFiles.length > 0) {
+            state = 'failure';
+            description = 'Pending owner approval for some files.';
             let message = 'The following files require approval from at least one code owner:\n';
             unapprovedFiles.forEach(f => {
                 message += `- ${f.filename} (Owners: ${f.owners.join(', ') || 'None'})\n`;
             });
-            core.setFailed(message);
+            core.info(message); // Log it so it's visible in Actions
         } else {
-            core.info('All files approved by code owners.');
+            core.info(description);
         }
+
+        await octokit.rest.repos.createCommitStatus({
+            owner,
+            repo,
+            sha,
+            state,
+            context: statusContext,
+            description,
+            target_url: `https://github.com/${owner}/${repo}/actions/runs/${context.runId}`
+        });
 
     } catch (error) {
         core.setFailed(error.message);
