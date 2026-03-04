@@ -34,10 +34,21 @@ async function run() {
             pull_number,
         });
 
+        const latestReviews = new Map();
+        reviews.forEach(review => {
+            const user = review.user.login;
+            const state = review.state;
+            const submittedAt = new Date(review.submitted_at);
+
+            if (!latestReviews.has(user) || submittedAt > latestReviews.get(user).submittedAt) {
+                latestReviews.set(user, { state, submittedAt });
+            }
+        });
+
         const approvedReviewers = new Set(
-            reviews
-                .filter(r => r.state === 'APPROVED')
-                .map(r => r.user.login)
+            Array.from(latestReviews.entries())
+                .filter(([user, info]) => info.state === 'APPROVED')
+                .map(([user, info]) => user)
         );
 
         core.info(`PR Author: ${prAuthor}`);
