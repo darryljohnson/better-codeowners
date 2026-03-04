@@ -85,7 +85,7 @@ async function run() {
                 sha: context.payload.pull_request.head.sha,
                 state: 'failure',
                 context: 'better-codeowners',
-                description: `Missing approval for ${unapprovedFiles.length} files.`,
+                description: `Missing approval for ${unapprovedFiles.length} file.`,
                 target_url: `https://github.com/${owner}/${repo}/actions/runs/${context.runId}`
             });
 
