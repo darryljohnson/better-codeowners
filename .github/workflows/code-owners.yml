@@ -9,6 +9,10 @@ on:
 jobs:
   validate-owners:
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+      contents: read
+      statuses: write
     steps:
       - uses: actions/checkout@v4
       - name: Better Code Owners

@@ -23,7 +23,7 @@ GitHub's native `CODEOWNERS` can be rigid and difficult to manage in large repos
 
 ### 1. Create a Workflow File
 
-Add `.github/workflows/code-owners.yml` to your repository:
+Add `.github/workflows/code-owners.yml` to your repository. **Note:** Ensure you include the `permissions` block so the action can update the PR status correctly.
 
 ```yaml
 name: Code Owners Check
@@ -37,6 +37,10 @@ on:
 jobs:
   validate-owners:
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+      contents: read
+      statuses: write
     steps:
       - uses: actions/checkout@v4
       - name: Better Code Owners
@@ -45,11 +49,16 @@ jobs:
 
 ### 2. Configure Branch Protection
 
+To avoid confusion with multiple checks appearing (one for each trigger event), this action reports a single unified status named **"better-codeowners"**.
+
 To make this check mandatory:
 1. Go to **Settings > Branches** in your GitHub repository.
 2. Add or Edit a **Branch protection rule**.
 3. Enable **Require status checks to pass before merging**.
-4. Search for `validate-owners` (or the name of your job) and add it to the required checks.
+4. Search for **"better-codeowners"** (this is the status context reported by the action) and add it to the required checks.
+
+> [!TIP]
+> Do **not** use the job name (`validate-owners`) as the required check. Using the "better-codeowners" status ensures a single, consistent check that is updated by both code pushes and reviews.
 
 ## OWNERS file format
 

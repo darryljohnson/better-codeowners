@@ -78,9 +78,29 @@ async function run() {
             unapprovedFiles.forEach(f => {
                 message += `- ${f.filename} (Owners: ${f.owners.join(', ') || 'None'})\n`;
             });
+
+            await octokit.rest.repos.createCommitStatus({
+                owner,
+                repo,
+                sha: context.payload.pull_request.head.sha,
+                state: 'failure',
+                context: 'better-codeowners',
+                description: `Missing approval for ${unapprovedFiles.length} files.`,
+                target_url: `https://github.com/${owner}/${repo}/actions/runs/${context.runId}`
+            });
+
             core.setFailed(message);
         } else {
             core.info('All files approved by code owners.');
+            await octokit.rest.repos.createCommitStatus({
+                owner,
+                repo,
+                sha: context.payload.pull_request.head.sha,
+                state: 'success',
+                context: 'better-codeowners',
+                description: 'All files approved by code owners.',
+                target_url: `https://github.com/${owner}/${repo}/actions/runs/${context.runId}`
+            });
         }
 
     } catch (error) {
