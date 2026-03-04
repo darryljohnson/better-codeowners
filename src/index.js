@@ -100,7 +100,7 @@ async function run() {
             description = 'Changes requested by code owners.';
             let message = 'The following files have changes requested by a code owner:\n';
             requestedChangesFiles.forEach(f => {
-                message += `- ${f.filename} (Owners: ${f.owners.join(', ') || 'None'})\n`;
+                message += `- ${f.filename} (Owners: ${f.owners.join(', ') || 'None '})\n`;
             });
             core.info(message);
         } else if (unapprovedFiles.length > 0) {
