@@ -12,4 +12,4 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Better Code Owners
-        uses: darryljohnson/better-codeowners@v1
+        uses: darryljohnson/better-codeowners@main
