@@ -5,6 +5,7 @@ inputs:
   github-token:
     description: 'GitHub Token (defaults to GITHUB_TOKEN env var)'
     required: false
+    default: ${{ github.token }}
   status-context:
     description: 'The name of the commit status to create'
     required: false
