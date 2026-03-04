@@ -73,37 +73,56 @@ async function run() {
             }
         }
 
-        if (unapprovedFiles.length > 0) {
+        const unapprovedCount = unapprovedFiles.length;
+        const description = unapprovedCount > 0
+            ? `Missing approval for ${unapprovedCount} file${unapprovedCount === 1 ? '' : 's'}.`
+            : 'All files approved by code owners.';
+        const state = unapprovedCount > 0 ? 'failure' : 'success';
+
+        core.info(`Reporting status: ${state} - ${description}`);
+
+        await octokit.rest.repos.createCommitStatus({
+            owner,
+            repo,
+            sha: context.payload.pull_request.head.sha,
+            state: state,
+            context: 'better-codeowners',
+            description: description,
+            target_url: `https://github.com/${owner}/${repo}/actions/runs/${context.runId}`
+        });
+
+        if (unapprovedCount > 0) {
             let message = 'The following files require approval from at least one code owner:\n';
             unapprovedFiles.forEach(f => {
                 message += `- ${f.filename} (Owners: ${f.owners.join(', ') || 'None'})\n`;
             });
-
-            await octokit.rest.repos.createCommitStatus({
-                owner,
-                repo,
-                sha: context.payload.pull_request.head.sha,
-                state: 'failure',
-                context: 'better-codeowners',
-                description: `Missing approval for ${unapprovedFiles.length} file.`,
-                target_url: `https://github.com/${owner}/${repo}/actions/runs/${context.runId}`
-            });
-
             core.setFailed(message);
         } else {
-            core.info('All files approved by code owners.');
-            await octokit.rest.repos.createCommitStatus({
-                owner,
-                repo,
-                sha: context.payload.pull_request.head.sha,
-                state: 'success',
-                context: 'better-codeowners',
-                description: 'All files approved by code owners.',
-                target_url: `https://github.com/${owner}/${repo}/actions/runs/${context.runId}`
-            });
+            core.info('Validation successful.');
         }
 
     } catch (error) {
+        core.error(`Action failed with error: ${error.message}`);
+
+        try {
+            const token = core.getInput('github-token') || process.env.GITHUB_TOKEN;
+            const context = github.context;
+            if (token && context.payload.pull_request) {
+                const octokit = github.getOctokit(token);
+                await octokit.rest.repos.createCommitStatus({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    sha: context.payload.pull_request.head.sha,
+                    state: 'error',
+                    context: 'better-codeowners',
+                    description: 'The check encountered a technical error.',
+                    target_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
+                });
+            }
+        } catch (statusError) {
+            core.error(`Failed to report error status: ${statusError.message}`);
+        }
+
         core.setFailed(error.message);
     }
 }
