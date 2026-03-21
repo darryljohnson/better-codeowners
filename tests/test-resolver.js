@@ -28,6 +28,7 @@ async function test() {
     // /other/file.txt
 
     fs.writeFileSync(path.join(tempDir, 'OWNERS'), 'alice\n@charlie');
+    //
     fs.mkdirSync(path.join(tempDir, 'sub'), { recursive: true });
     fs.writeFileSync(path.join(tempDir, 'sub', 'OWNERS'), 'bob');
     fs.writeFileSync(path.join(tempDir, 'sub', 'file.txt'), 'hello');
