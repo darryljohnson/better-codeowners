@@ -1,7 +1,6 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
 import { resolveOwners } from './owners-parser.js';
-import path from 'path';
 
 async function run() {
     try {
@@ -63,12 +62,44 @@ async function run() {
         core.info(`Approved Reviewers: ${Array.from(approvedReviewers).join(', ')}`);
         core.info(`Requested Changes Reviewers: ${Array.from(requestedChangesReviewers).join(', ')}`);
 
+        const baseRef = context.payload.pull_request.base.ref;
+        core.info(`Base Branch: ${baseRef}`);
+
+        const ownersCache = new Map();
+
+        const fetchFile = async (filePath) => {
+            if (ownersCache.has(filePath)) {
+                return ownersCache.get(filePath);
+            }
+
+            try {
+                const { data } = await octokit.rest.repos.getContent({
+                    owner,
+                    repo,
+                    path: filePath,
+                    ref: baseRef,
+                });
+
+                if (data && data.content) {
+                    const content = Buffer.from(data.content, 'base64').toString('utf8');
+                    ownersCache.set(filePath, content);
+                    return content;
+                }
+            } catch (error) {
+                if (error.status !== 404) {
+                    core.warning(`Error fetching ${filePath} from ${baseRef}: ${error.message}`);
+                }
+                ownersCache.set(filePath, null);
+            }
+            return null;
+        };
+
         const unapprovedFiles = [];
         const requestedChangesFiles = [];
         const repoRoot = process.cwd();
 
         for (const file of files) {
-            const owners = resolveOwners(file.filename, repoRoot);
+            const owners = await resolveOwners(file.filename, repoRoot, fetchFile);
             core.info(`File: ${file.filename}, Owners: ${owners.join(', ')}`);
 
             const isApproved = owners.some(owner =>

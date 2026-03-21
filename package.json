@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "ncc build src/index.js -o dist --minify --no-cache",
-    "test": "node tests/test-resolver.js"
+    "test": "node tests/test-resolver.js && node tests/test-owner-bypass.js"
   },
   "keywords": [],
   "author": "Darryl Johnson",

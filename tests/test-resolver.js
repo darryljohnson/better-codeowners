@@ -7,10 +7,19 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Simple mock for testing
-function test() {
+async function test() {
     const tempDir = path.join(__dirname, 'temp_test_repo');
     if (fs.existsSync(tempDir)) fs.rmSync(tempDir, { recursive: true });
     fs.mkdirSync(tempDir, { recursive: true });
+
+    // Helper to mock fetchFile using local fs
+    const fetchFile = async (filePath) => {
+        const fullPath = path.join(tempDir, filePath);
+        if (fs.existsSync(fullPath)) {
+            return fs.readFileSync(fullPath, 'utf8');
+        }
+        return null;
+    };
 
     // Create structure:
     // /OWNERS (alice)
@@ -26,7 +35,7 @@ function test() {
     fs.writeFileSync(path.join(tempDir, 'other', 'file.txt'), 'world');
 
     console.log('Testing resolveOwners for sub/file.txt...');
-    const ownersSub = resolveOwners('sub/file.txt', tempDir);
+    const ownersSub = await resolveOwners('sub/file.txt', tempDir, fetchFile);
     console.log('Owners:', ownersSub);
     if (ownersSub.includes('alice') && ownersSub.includes('bob') && ownersSub.includes('charlie')) {
         console.log('✅ Success: Nested owners resolved correctly.');
@@ -35,7 +44,7 @@ function test() {
     }
 
     console.log('\nTesting resolveOwners for other/file.txt...');
-    const ownersOther = resolveOwners('other/file.txt', tempDir);
+    const ownersOther = await resolveOwners('other/file.txt', tempDir, fetchFile);
     console.log('Owners:', ownersOther);
     if (ownersOther.includes('alice') && ownersOther.includes('charlie') && !ownersOther.includes('bob')) {
         console.log('✅ Success: Top-level owners resolved correctly.');
