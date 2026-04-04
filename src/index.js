@@ -16,7 +16,7 @@ async function run() {
             return;
         }
 
-        const statusContext = core.getInput('status-context') || 'Code Owner Approval';
+        const statusContext = core.getInput('status-context');
         const prAuthor = context.payload.pull_request.user.login;
         const sha = context.payload.pull_request.head.sha;
         const { owner, repo, number: pull_number } = context.issue;
