@@ -34,6 +34,11 @@ on:
   pull_request_review:
     types: [submitted, dismissed]
 
+permissions:
+  contents: read
+  pull-requests: write
+  statuses: write
+
 jobs:
   validate-owners:
     runs-on: ubuntu-latest
