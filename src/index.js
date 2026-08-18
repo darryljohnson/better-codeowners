@@ -1,6 +1,7 @@
 import * as core from '@actions/core';
 import * as github from '@actions/github';
 import { resolveOwners } from './owners-parser.js';
+import { getReviewerDecisions } from './review-helper.js';
 
 async function run() {
     try {
@@ -18,45 +19,25 @@ async function run() {
 
         const statusContext = core.getInput('status-context') || 'Code Owner Approval';
         const prAuthor = context.payload.pull_request.user.login;
+        const prAuthorLower = prAuthor.toLowerCase();
         const sha = context.payload.pull_request.head.sha;
         const { owner, repo, number: pull_number } = context.issue;
 
-        // 1. Get changed files
-        const { data: files } = await octokit.rest.pulls.listFiles({
+        // 1. Get changed files (paginated)
+        const files = await octokit.paginate(octokit.rest.pulls.listFiles, {
             owner,
             repo,
             pull_number,
         });
 
-        // 2. Get reviews
-        const { data: reviews } = await octokit.rest.pulls.listReviews({
+        // 2. Get reviews (paginated)
+        const reviews = await octokit.paginate(octokit.rest.pulls.listReviews, {
             owner,
             repo,
             pull_number,
         });
 
-        const latestReviews = new Map();
-        reviews.forEach(review => {
-            const user = review.user.login;
-            const state = review.state;
-            const submittedAt = new Date(review.submitted_at);
-
-            if (!latestReviews.has(user) || submittedAt > latestReviews.get(user).submittedAt) {
-                latestReviews.set(user, { state, submittedAt });
-            }
-        });
-
-        const approvedReviewers = new Set(
-            Array.from(latestReviews.entries())
-                .filter(([user, info]) => info.state === 'APPROVED')
-                .map(([user, info]) => user)
-        );
-
-        const requestedChangesReviewers = new Set(
-            Array.from(latestReviews.entries())
-                .filter(([user, info]) => info.state === 'CHANGES_REQUESTED')
-                .map(([user, info]) => user)
-        );
+        const { approvedReviewers, requestedChangesReviewers } = getReviewerDecisions(reviews);
 
         core.info(`PR Author: ${prAuthor}`);
         core.info(`Approved Reviewers: ${Array.from(approvedReviewers).join(', ')}`);
@@ -103,11 +84,11 @@ async function run() {
             core.info(`File: ${file.filename}, Owners: ${owners.join(', ')}`);
 
             const isApproved = owners.some(owner =>
-                owner === prAuthor || approvedReviewers.has(owner)
+                owner.toLowerCase() === prAuthorLower || approvedReviewers.has(owner.toLowerCase())
             );
 
             const hasRequestedChanges = !isApproved && owners.some(owner =>
-                requestedChangesReviewers.has(owner)
+                requestedChangesReviewers.has(owner.toLowerCase())
             );
 
             if (hasRequestedChanges) {
